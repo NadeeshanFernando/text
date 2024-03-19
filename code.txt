@@ -1,0 +1,32 @@
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.ldap.core.LdapTemplate;
+import org.springframework.stereotype.Service;
+
+@Service
+public class LdapUserService {
+
+    @Autowired
+    private LdapTemplate ldapTemplate;
+
+    public void createUser(String username, String password, String fullName, String email, String ou) {
+        // Set LDAP attributes for the new user
+        Attributes attributes = new BasicAttributes();
+        Attribute objectClass = new BasicAttribute("objectClass");
+        objectClass.add("top");
+        objectClass.add("person");
+        objectClass.add("organizationalPerson");
+        objectClass.add("user");
+        attributes.put(objectClass);
+        attributes.put("sAMAccountName", username);
+        attributes.put("userPrincipalName", username + "@yourdomain.com"); // Adjust domain accordingly
+        attributes.put("cn", fullName);
+        attributes.put("givenName", fullName.split(" ")[0]); // Assuming first part is the first name
+        attributes.put("sn", fullName.split(" ")[1]); // Assuming second part is the last name
+        attributes.put("userPassword", password);
+        attributes.put("mail", email);
+        attributes.put("ou", ou); // Organizational Unit
+
+        // Create the new user in LDAP
+        ldapTemplate.bind("CN=" + fullName + "," + ou + ",DC=yourdomain,DC=com", null, attributes);
+    }
+}
