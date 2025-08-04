@@ -14,7 +14,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const org = "your-org"; // 🔁 Replace this with your org
+            const org = "NadeeshanFernando"; // 🔁 Replace this with your org
             const repos = [
               "fusionx-core",
               "fusionx-api",
