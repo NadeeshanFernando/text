@@ -2,7 +2,7 @@ name: Daily Sprint PR Digest
 
 on:
   schedule:
-    - cron: '30 3 * * *'  # 9 AM SLT (3:30 UTC)
+    - cron: '30 3 * * *'  # Runs at 9:00 AM SLT
   workflow_dispatch:
 
 jobs:
@@ -14,20 +14,16 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const org = "NadeeshanFernando"; // 🔁 Replace this with your org
-            const repos = [
-              "fusionx-core",
-              "fusionx-api",
-              "fusionx-ui"
-            ]; // 🔁 Add your sprint repos here
-            const sprintLabel = "sprint-47"; // 🔁 Current sprint
+            const owner = "NadeeshanFernando"; // ✅ Your GitHub username
+            const repos = ["text"]; // ✅ Repos you want to scan
+            const sprintLabel = "sprint-47"; // ✅ Change for each sprint
 
             let totalPRs = 0;
             let report = "";
 
             for (const repo of repos) {
               const { data: prs } = await github.rest.pulls.list({
-                owner: org,
+                owner: owner,
                 repo,
                 state: "open",
                 per_page: 100,
