@@ -2,7 +2,7 @@ name: Daily Sprint PR Digest
 
 on:
   schedule:
-    - cron: '30 3 * * *'  # Runs at 9:00 AM SLT (03:30 UTC)
+    - cron: '30 3 * * *'  # 9:00 AM SLT (03:30 UTC)
   workflow_dispatch:
 
 jobs:
@@ -15,14 +15,13 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             // 🔧 CONFIGURATION
-            const owner = "NadeeshanFernando"; // GitHub username or org
-            const repos = ["text"];            // Add more repo names as needed
-            const sprintLabel = "sprint-47";   // Change per sprint
+            const owner = "NadeeshanFernando";       // Your GitHub username or org
+            const repos = ["text"];                  // List of repo(s)
+            const sprintLabel = "sprint-47";         // Current sprint label
 
             let totalPRs = 0;
             let report = "";
 
-            // Helper: calculate hours ago
             const getHoursAgo = (dateStr) => {
               const msDiff = Date.now() - new Date(dateStr).getTime();
               return Math.floor(msDiff / 3600000);
@@ -43,7 +42,7 @@ jobs:
               if (sprintPRs.length === 0) continue;
 
               totalPRs += sprintPRs.length;
-              report += `Repository: ${repo}\n`;
+              report += `*Repository:* ${repo}\n`;
 
               sprintPRs.forEach(pr => {
                 const opened = getHoursAgo(pr.created_at);
@@ -51,11 +50,11 @@ jobs:
                 const author = pr.user?.login || "Unknown";
                 const status = pr.draft ? "Draft" : "Open";
 
-                report += `• <${pr.html_url}|PR #${pr.number}> - ${pr.title}\n`;
-                report += `  Author        : @${author}\n`;
-                report += `  Opened        : ${opened}h ago\n`;
-                report += `  Last Updated  : ${updated}h ago\n`;
-                report += `  Status        : ${status}\n\n`;
+                report += `• <${pr.html_url}|*PR #${pr.number} - ${pr.title}*>\n`;
+                report += `  *Author*        : @${author}\n`;
+                report += `  *Opened*        : ${opened}h ago\n`;
+                report += `  *Last Updated*  : ${updated}h ago\n`;
+                report += `  *Status*        : ${status}\n\n`;
               });
 
               report += `──────────────────────────────\n\n`;
@@ -68,14 +67,14 @@ jobs:
             });
 
             if (totalPRs === 0) {
-              report = `All PRs for ${sprintLabel} are merged ✅`;
+              report = `All PRs for *${sprintLabel}* are merged ✅`;
             } else {
               report =
-                `Sprint PR Summary – ${sprintLabel}\n` +
-                `Total PRs to merge: ${totalPRs}\n` +
+                `*Sprint PR Summary – ${sprintLabel}*\n` +
+                `*Total PRs to merge:* ${totalPRs}\n` +
                 `──────────────────────────────\n\n` +
                 report +
-                `Report generated: ${date} (SLT)`;
+                `*Report generated:* ${date} (SLT)`;
             }
 
             const webhook = process.env.SLACK_WEBHOOK_URL;
