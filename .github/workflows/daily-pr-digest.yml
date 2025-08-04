@@ -51,7 +51,7 @@ jobs:
                 const author = pr.user?.login || "Unknown";
                 const status = pr.draft ? "Draft" : "Open";
 
-                report += `• PR #${pr.number} - ${pr.title}\n`;
+                report += `• <${pr.html_url}|PR #${pr.number}> - ${pr.title}\n`;
                 report += `  Author        : @${author}\n`;
                 report += `  Opened        : ${opened}h ago\n`;
                 report += `  Last Updated  : ${updated}h ago\n`;
