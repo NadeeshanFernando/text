@@ -2,7 +2,7 @@ name: Daily Sprint PR Digest
 
 on:
   schedule:
-    - cron: '30 3 * * *'  # Runs at 9:00 AM SLT
+    - cron: '30 3 * * *'  # 9:00 AM SLT
   workflow_dispatch:
 
 jobs:
@@ -14,16 +14,21 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const owner = "NadeeshanFernando"; // ✅ Your GitHub username
-            const repos = ["text"]; // ✅ Repos you want to scan
-            const sprintLabel = "sprint-47"; // ✅ Change for each sprint
+            const owner = "NadeeshanFernando";
+            const repos = ["text"]; // Add more if needed
+            const sprintLabel = "sprint-47";
 
             let totalPRs = 0;
             let report = "";
 
+            const getHoursAgo = (dateStr) => {
+              const msDiff = Date.now() - new Date(dateStr).getTime();
+              return Math.floor(msDiff / 3600000);
+            };
+
             for (const repo of repos) {
               const { data: prs } = await github.rest.pulls.list({
-                owner: owner,
+                owner,
                 repo,
                 state: "open",
                 per_page: 100,
@@ -36,25 +41,38 @@ jobs:
               if (sprintPRs.length === 0) continue;
 
               totalPRs += sprintPRs.length;
-              report += `📦 *${repo}*\n`;
+              report += `📁 *Repository:* \`${repo}\`\n`;
 
               sprintPRs.forEach(pr => {
-                const updatedAt = new Date(pr.updated_at);
-                const hoursOld = Math.floor((Date.now() - updatedAt.getTime()) / 3600000);
-                report += `🔗 <${pr.html_url}|#${pr.number}> ${pr.title} – _${hoursOld}h old_\n`;
+                const openedHours = getHoursAgo(pr.created_at);
+                const updatedHours = getHoursAgo(pr.updated_at);
+                const author = pr.user?.login || "Unknown";
+                const prStatus = pr.draft ? "🟡 Draft" : "🟢 Open";
+
+                report += `• 🔗 <${pr.html_url}|#${pr.number}> **${pr.title}**\n`;
+                report += `  ┗ 🧑 Author: @${author}\n`;
+                report += `     🕓 Opened: ${openedHours}h | 🔄 Last Updated: ${updatedHours}h | ${prStatus}\n\n`;
               });
 
-              report += `\n`;
+              report += `━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
             }
+
+            const date = new Date().toLocaleString("en-US", {
+              timeZone: "Asia/Colombo",
+              dateStyle: "long",
+              timeStyle: "short"
+            });
 
             if (totalPRs === 0) {
               report = `🎉 *All PRs for ${sprintLabel} are merged!* 🥳`;
             } else {
-              report = `🚨 *Pending Sprint PRs – ${sprintLabel}*\n🔢 Total PRs to merge: *${totalPRs}*\n\n` + report;
+              report =
+                `📢 *Sprint PR Summary – ${sprintLabel}*\n` +
+                `*Total PRs to merge:* \`${totalPRs}\`\n\n` +
+                `━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+                report +
+                `🕒 _Report generated: ${date} (SLT)_`;
             }
-
-            const date = new Date().toLocaleString("en-US", { timeZone: "Asia/Colombo" });
-            report += `🕐 _Updated: ${date}_`;
 
             const webhook = process.env.SLACK_WEBHOOK_URL;
 
