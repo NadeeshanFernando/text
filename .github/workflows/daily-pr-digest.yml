@@ -1,8 +1,8 @@
-name: Daily Sprint PR Digest
+name: Multi-Repo PR Digest
 
 on:
   schedule:
-    - cron: '30 3 * * *'  # 9:00 AM SLT (03:30 UTC)
+    - cron: '30 3 * * *'  # 9:00 AM SLT
   workflow_dispatch:
 
 jobs:
@@ -12,24 +12,33 @@ jobs:
       - name: Send Slack PR Report
         uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # Use Personal Access Token if scanning private repos
+          github-token: ${{ secrets.GITHUB_ACCESS_TOKEN }}
           script: |
-            // 🔧 CONFIGURATION
-            const owner = "NadeeshanFernando";       // Your GitHub username or org
-            const repos = ["text"];                  // List of repo(s)
-            const sprintLabel = "sprint-47";         // Current sprint label
-
-            let totalPRs = 0;
-            let report = "";
+            const username = "NadeeshanFernando";
+            const sprintLabel = "sprint-47";
+            const includePrefix = ""; // optional: e.g., "fusionx-"
 
             const getHoursAgo = (dateStr) => {
               const msDiff = Date.now() - new Date(dateStr).getTime();
               return Math.floor(msDiff / 3600000);
             };
 
-            for (const repo of repos) {
+            // Fetch all repos for user/org
+            const { data: reposList } = await github.rest.repos.listForUser({
+              username,
+              per_page: 100
+            });
+
+            let totalPRs = 0;
+            let report = "";
+
+            for (const repoObj of reposList) {
+              const repo = repoObj.name;
+              if (includePrefix && !repo.startsWith(includePrefix)) continue;
+
               const { data: prs } = await github.rest.pulls.list({
-                owner,
+                owner: username,
                 repo,
                 state: "open",
                 per_page: 100,
@@ -78,7 +87,6 @@ jobs:
             }
 
             const webhook = process.env.SLACK_WEBHOOK_URL;
-
             await fetch(webhook, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
